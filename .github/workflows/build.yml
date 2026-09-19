@@ -22,8 +22,7 @@ jobs:
 
       - name: Recreate Android Project Files
         run: |
-          flutter create --platforms=android .
-          # Ustawienie minSdk na 21 wymaganego przez Google ML Kit
+          flutter create --platforms=android --project-name skaner_dc06 .
           sed -i 's/minSdkVersion.*/minSdkVersion = 21/g' android/app/build.gradle || true
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
 
