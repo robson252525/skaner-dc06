@@ -17,17 +17,14 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.19.6'
           channel: 'stable'
 
-      - name: Recreate Android Project Files
+      - name: Generate Android Skeleton
         run: |
           flutter create --platforms=android --project-name skaner_dc06 .
-          # Wymuszenie nowszej wersji Kotlina w settings.gradle
-          sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.24"/g' android/settings.gradle
-          # Ustawienie wymaganego minSdk 21
-          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
+          echo "ext.kotlin_version = '1.9.24'" >> android/build.gradle
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
 
       - name: Get Dependencies
         run: flutter pub get
