@@ -23,6 +23,9 @@ jobs:
       - name: Recreate Android Project Files
         run: |
           flutter create --platforms=android --project-name skaner_dc06 .
+          # Wymuszenie nowszej wersji Kotlina w settings.gradle
+          sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.24"/g' android/settings.gradle
+          # Ustawienie wymaganego minSdk 21
           sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle || true
 
