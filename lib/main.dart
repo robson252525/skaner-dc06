@@ -22,7 +22,6 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
   File? _imageFile;
   bool _isProcessing = false;
 
-  // Pola raportu
   String? wni;
   String? dostawca;
   String? zaklad;
@@ -37,7 +36,6 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
   final TextRecognizer _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
   final BarcodeScanner _barcodeScanner = BarcodeScanner(formats: [BarcodeFormat.all]);
 
-  // Baza Ubojni z pliku DC06
   final Map<String, Map<String, String>> bazaUbojni = {
     "28050201": {"d": "ANIMEX FOODS", "z": "Ełk", "s": "659323"},
     "10020202": {"d": "ANIMEX FOODS", "z": "Kutno K2", "s": "659323"},
@@ -80,13 +78,11 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
 
     final inputImage = InputImage.fromFilePath(pickedFile.path);
 
-    // 1. Skanowanie kodu kreskowego (EAN)
     final barcodes = await _barcodeScanner.processImage(inputImage);
     if (barcodes.isNotEmpty) {
       eanKod = barcodes.first.rawValue;
     }
 
-    // 2. Skanowanie tekstu z etykiety
     final recognizedText = await _textRecognizer.processImage(inputImage);
     _analyzeText(recognizedText.text);
 
@@ -110,7 +106,6 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
   void _analyzeText(String fullText) {
     String clean = fullText.toUpperCase();
 
-    // 1. Szukanie WNI
     for (String code in bazaUbojni.keys) {
       if (clean.replaceAll(RegExp(r'\s+'), '').contains(code)) {
         wni = code;
@@ -121,14 +116,12 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
       }
     }
 
-    // 2. Data ważności
     final regData = RegExp(r'(\d{2}[.\-/]\d{2}[.\-/]\d{4})');
     final matchData = regData.firstMatch(clean);
     if (matchData != null) {
       dataWaznosci = matchData.group(0);
     }
 
-    // 3. Numer Partii (rozszerzone reguły dla "L:", "LOT", "P:", "PARTIA")
     final regPartia = RegExp(r'(?:PARTIA|LOT|NR PARTII|PARTII|L\s*[:\.]?|P\s*[:\.]?)\s*([A-Z0-9\-\/]{4,15})');
     final matchPartia = regPartia.firstMatch(clean);
     if (matchPartia != null) {
@@ -141,12 +134,10 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
       }
     }
 
-    // 4. Kraj pochodzenia
     if (clean.contains("POLSKA") || clean.contains("KRAJ POCHODZENIA: PL") || clean.contains("POCHODZENIE: PL") || clean.contains("UBITO W: POLSKA")) {
       krajPochodzenia = "POLSKA (PL)";
     }
 
-    // 5. Masa netto
     final regMasa = RegExp(r'(\d+[\.,]?\d*)\s*(KG|G)\b');
     final matchMasa = regMasa.firstMatch(clean);
     if (matchMasa != null) {
