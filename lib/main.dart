@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 
 void main() {
   runApp(const MaterialApp(
@@ -26,8 +27,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
   String? dostawca;
   String? zaklad;
   String? sapDostawca;
-  String? nazwaProduktu;
-  String? sapProdukt;
+  String? eanKod;
   String? dataWaznosci;
   String? numerPartii;
   String? krajPochodzenia;
@@ -35,6 +35,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
 
   final ImagePicker _picker = ImagePicker();
   final TextRecognizer _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+  final BarcodeScanner _barcodeScanner = BarcodeScanner(formats: [BarcodeFormat.all]);
 
   // Baza Ubojni z pliku DC06
   final Map<String, Map<String, String>> bazaUbojni = {
@@ -60,25 +61,12 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
     "14170201": {"d": "PINI POLONIA", "z": "Kutno", "s": "639200"},
   };
 
-  // Słownik indeksów produktów
-  final Map<String, String> bazaProduktow = {
-    "BOCZEK": "252963",
-    "POLĘDWICZKA": "311365",
-    "KARKÓWKA": "229127",
-    "ŁOPATKA": "265064",
-    "SCHAB": "253029",
-    "SZYNKA": "277789",
-    "BIAŁA": "371350",
-    "TATAR": "252992",
-    "ŻEBERKO": "422590",
-    "MIELONE": "252992",
-    "GULASZ": "376380",
-    "FILET": "281098",
-    "PIERŚ": "477476",
-    "SKRZYDŁA": "259770",
-    "KACZKA": "289758",
-    "KIEŁBASA": "421200",
-  };
+  @override
+  void dispose() {
+    _textRecognizer.close();
+    _barcodeScanner.close();
+    super.dispose();
+  }
 
   Future<void> _processImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
@@ -91,8 +79,15 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
     });
 
     final inputImage = InputImage.fromFilePath(pickedFile.path);
-    final recognizedText = await _textRecognizer.processImage(inputImage);
 
+    // 1. Skanowanie kodu kreskowego (EAN)
+    final barcodes = await _barcodeScanner.processImage(inputImage);
+    if (barcodes.isNotEmpty) {
+      eanKod = barcodes.first.rawValue;
+    }
+
+    // 2. Skanowanie tekstu z etykiety
+    final recognizedText = await _textRecognizer.processImage(inputImage);
     _analyzeText(recognizedText.text);
 
     setState(() {
@@ -105,8 +100,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
     dostawca = null;
     zaklad = null;
     sapDostawca = null;
-    nazwaProduktu = null;
-    sapProdukt = null;
+    eanKod = null;
     dataWaznosci = null;
     numerPartii = null;
     krajPochodzenia = null;
@@ -116,7 +110,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
   void _analyzeText(String fullText) {
     String clean = fullText.toUpperCase();
 
-    // 1. Szukanie WNI (8 cyfr lub PL ... WE/UE)
+    // 1. Szukanie WNI
     for (String code in bazaUbojni.keys) {
       if (clean.replaceAll(RegExp(r'\s+'), '').contains(code)) {
         wni = code;
@@ -127,41 +121,32 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
       }
     }
 
-    // 2. Szukanie Produktu i SAP Produktu
-    for (String slowo in bazaProduktow.keys) {
-      if (clean.contains(slowo)) {
-        nazwaProduktu = slowo;
-        sapProdukt = bazaProduktow[slowo];
-        break;
-      }
-    }
-
-    // 3. Data ważności
+    // 2. Data ważności
     final regData = RegExp(r'(\d{2}[.\-/]\d{2}[.\-/]\d{4})');
     final matchData = regData.firstMatch(clean);
     if (matchData != null) {
       dataWaznosci = matchData.group(0);
     }
 
-    // 4. Numer Partii
-    final regPartia = RegExp(r'(?:PARTIA|LOT|NR PARTII|PARTII)[:\s]*([A-Z0-9]{5,15})');
+    // 3. Numer Partii (rozszerzone reguły dla "L:", "LOT", "P:", "PARTIA")
+    final regPartia = RegExp(r'(?:PARTIA|LOT|NR PARTII|PARTII|L\s*[:\.]?|P\s*[:\.]?)\s*([A-Z0-9\-\/]{4,15})');
     final matchPartia = regPartia.firstMatch(clean);
     if (matchPartia != null) {
       numerPartii = matchPartia.group(1);
     } else {
       final regDigits = RegExp(r'\b\d{8,12}\b');
       final matchDigits = regDigits.firstMatch(clean);
-      if (matchDigits != null && matchDigits.group(0) != wni) {
+      if (matchDigits != null && matchDigits.group(0) != wni && matchDigits.group(0) != eanKod) {
         numerPartii = matchDigits.group(0);
       }
     }
 
-    // 5. Kraj pochodzenia
-    if (clean.contains("POLSKA") || clean.contains("KRAJ POCHODZENIA: PL") || clean.contains(" POCHODZENIE: PL")) {
+    // 4. Kraj pochodzenia
+    if (clean.contains("POLSKA") || clean.contains("KRAJ POCHODZENIA: PL") || clean.contains("POCHODZENIE: PL") || clean.contains("UBITO W: POLSKA")) {
       krajPochodzenia = "POLSKA (PL)";
     }
 
-    // 6. Masa netto
+    // 5. Masa netto
     final regMasa = RegExp(r'(\d+[\.,]?\d*)\s*(KG|G)\b');
     final matchMasa = regMasa.firstMatch(clean);
     if (matchMasa != null) {
@@ -241,8 +226,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
               _buildRow("Ubojnia / Dostawca", dostawca != null ? "$dostawca ($zaklad)" : null, "BRAK W BAZIE"),
               _buildRow("SAP Dostawcy", sapDostawca, "BRAK"),
               _buildRow("Stempel WNI", wni, "NIE ROZPOZNANO"),
-              _buildRow("Produkt", nazwaProduktu, "BRAK NAZWIE"),
-              _buildRow("SAP Produktu", sapProdukt, "BRAK W WYKAZIE"),
+              _buildRow("Kod EAN (z kresek)", eanKod, "BRAK KODU"),
               _buildRow("Termin ważności", dataWaznosci, "BRAK DATY"),
               _buildRow("Numer partii", numerPartii, "BRAK PARTII"),
               _buildRow("Kraj pochodzenia", krajPochodzenia, "BRAK KRAJU"),
