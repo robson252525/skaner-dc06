@@ -333,7 +333,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
   @override
   void initState() {
     super.initState();
-    _wczytajHistorieZPamięci();
+    _wczytajHistorieZPamieci();
   }
 
   @override
@@ -343,7 +343,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
     super.dispose();
   }
 
-  Future<void> _wczytajHistorieZPamięci() async {
+  Future<void> _wczytajHistorieZPamieci() async {
     final prefs = await SharedPreferences.getInstance();
     final String? data = prefs.getString('historia_skanow');
     if (data != null) {
@@ -353,14 +353,14 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
     }
   }
 
-  Future<void> _zapiszDoPamięci(Map<String, dynamic> wpis) async {
+  Future<void> _zapiszDoPamieci(Map<String, dynamic> wpis) async {
     final prefs = await SharedPreferences.getInstance();
     _historia.insert(0, wpis);
     await prefs.setString('historia_skanow', json.encode(_historia));
     setState(() {});
   }
 
-  Future<void> _wyczyscPamięć() async {
+  Future<void> _wyczyscPamiec() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('historia_skanow');
     setState(() {
@@ -414,7 +414,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
       "kraj": krajPochodzenia,
       "masa": masaNetto,
     };
-    await _zapiszDoPamięci(wpis);
+    await _zapiszDoPamieci(wpis);
 
     setState(() {
       _isProcessing = false;
@@ -603,7 +603,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
                         IconButton(
                           icon: const Icon(Icons.delete_forever, color: Colors.red, size: 28),
                           onPressed: () async {
-                            await _wyczyscPamięć();
+                            await _wyczyscPamiec();
                             setModalState(() {});
                           },
                         ),
