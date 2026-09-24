@@ -16,33 +16,38 @@ jobs:
       - name: Konfiguracja Javy
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: 'zulu'
           java-version: '17'
 
       - name: Konfiguracja Fluttera
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
 
-      - name: Przygotowanie czystego projektu Flutter
-        run: |
-          mkdir temp_app
-          cd temp_app
-          flutter create --project-name skaner_dc06 . --platforms=android
-          flutter pub add google_mlkit_text_recognition google_mlkit_barcode_scanning image_picker
-          cp -r android ../
-          cp pubspec.yaml ../
-          cd ..
-          rm -rf temp_app
-
-      - name: Pobranie zaleznosci
+      - name: Pobierz pakiety Fluttera
         run: flutter pub get
 
-      - name: Budowanie pliku APK
-        run: flutter build apk --release
+      - name: Wygeneruj pliki Androida (jeśli brak w repo)
+        run: |
+          if [ ! -d "android" ]; then
+            flutter create . --platforms=android
+          fi
+
+      - name: Dodaj reguły ProGuard dla ML Kit
+        run: |
+          mkdir -p android/app
+          cat << 'EOF' >> android/app/proguard-rules.pro
+          -dontwarn com.google.mlkit.vision.text.**
+          -dontwarn com.google.mlkit.**
+          -keep class com.google.mlkit.** { *; }
+          EOF
+
+      - name: Zbuduj plik APK
+        run: flutter build apk --release --no-shrink
 
       - name: Zapisz gotowy plik APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
+          name: aplikacja-release
           path: build/app/outputs/flutter-apk/app-release.apk
