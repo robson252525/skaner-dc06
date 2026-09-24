@@ -2,19 +2,21 @@ name: Zbuduj APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Pobierz kod repozytorium
+        uses: actions/checkout@v4
 
       - name: Konfiguracja Javy
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Konfiguracja Fluttera
@@ -22,12 +24,25 @@ jobs:
         with:
           channel: 'stable'
 
-      - run: flutter create . --platforms=android
-      - run: flutter pub add google_mlkit_text_recognition image_picker
-      - run: flutter build apk --release
+      - name: Przygotowanie czystego projektu Flutter
+        run: |
+          mkdir temp_app
+          cd temp_app
+          flutter create --project-name skaner_dc06 . --platforms=android
+          flutter pub add google_mlkit_text_recognition google_mlkit_barcode_scanning image_picker
+          cp -r android ../
+          cp pubspec.yaml ../
+          cd ..
+          rm -rf temp_app
+
+      - name: Pobranie zaleznosci
+        run: flutter pub get
+
+      - name: Budowanie pliku APK
+        run: flutter build apk --release
 
       - name: Zapisz gotowy plik APK
         uses: actions/upload-artifact@v4
         with:
-          name: Skaner-DC06-Gotowy
+          name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
