@@ -2,7 +2,7 @@ name: Zbuduj APK
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
   workflow_dispatch:
 
 jobs:
@@ -16,36 +16,38 @@ jobs:
       - name: Konfiguracja Javy
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Konfiguracja Fluttera
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          cache: true
 
-      - name: Wygeneruj projekt Androida (jeśli brak)
+      - name: Przygotowanie czystego projektu Flutter
         run: |
-          if [ ! -d "android" ]; then
-            flutter create . --platforms=android
-          fi
+          mkdir temp_app
+          cd temp_app
+          flutter create --project-name skaner_dc06 . --platforms=android
+          flutter pub add google_mlkit_text_recognition google_mlkit_barcode_scanning image_picker
+          cp -r android ../
+          cp pubspec.yaml ../
+          cd ..
+          rm -rf temp_app
 
-      - name: Pobierz pakiety Fluttera
+      - name: Ustawienie minimalnego SDK Androida na 21
+        run: |
+          sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 21/g' android/app/build.gradle* || true
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle* || true
+
+      - name: Pobranie zaleznosci
         run: flutter pub get
 
-      - name: Wyłącz minifikację R8 w Androidzie
-        run: |
-          find android -name "build.gradle*" -exec sed -i 's/isMinifyEnabled = true/isMinifyEnabled = false/g' {} +
-          find android -name "build.gradle*" -exec sed -i 's/isShrinkResources = true/isShrinkResources = false/g' {} +
-          find android -name "build.gradle*" -exec sed -i 's/minifyEnabled true/minifyEnabled false/g' {} +
-          find android -name "build.gradle*" -exec sed -i 's/shrinkResources true/shrinkResources false/g' {} +
-
-      - name: Zbuduj plik APK
+      - name: Budowanie pliku APK
         run: flutter build apk --release
 
       - name: Zapisz gotowy plik APK
         uses: actions/upload-artifact@v4
         with:
-          name: aplikacja-release
+          name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
