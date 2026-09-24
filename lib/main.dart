@@ -43,9 +43,9 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
   final TextRecognizer _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
   final BarcodeScanner _barcodeScanner = BarcodeScanner(formats: [BarcodeFormat.all]);
 
-  // ==========================================
-  // 1. BAZA INDEKSÓW PRODUKTU -> ODDZIAŁ I DOSTAWCA
-  // ==========================================
+  // =========================================================================
+  // 1. PEŁNA BAZA INDEKSÓW PRODUKTÓW (MIĘSO, DRÓB, RYBY)
+  // =========================================================================
   final Map<String, Map<String, String>> bazaIndeksow = {
     // SOKOŁÓW - KOŁO
     "269447": {"d": "SOKOŁÓW S.A.", "z": "Koło", "s": "601497"},
@@ -124,6 +124,26 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
     "259819": {"d": "SOKOŁÓW S.A.", "z": "Robakowo", "s": "601497"},
     "577363": {"d": "SOKOŁÓW S.A.", "z": "Robakowo", "s": "601497"},
 
+    // SOKOŁÓW - JAROSŁAW
+    "282528": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "252991": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "205348": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "311305": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "290467": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "270974": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "359181": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "270065": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "356732": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "379395": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "379484": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "386042": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "406745": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "418475": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "389456": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "503456": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "421211": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "432673": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+
     // ANIMEX
     "259180": {"d": "ANIMEX FOODS", "z": "Kutno K3", "s": "659323"},
     "436206": {"d": "ANIMEX FOODS", "z": "Kutno K3", "s": "659323"},
@@ -163,7 +183,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
     "652598": {"d": "CEDROB S.A.", "z": "Mokrsko", "s": "600195"},
     "540226": {"d": "CEDROB S.A.", "z": "Mokrsko", "s": "600195"},
 
-    // DROSED
+    // DROSED / ROLDROB / SEDAR / DROP
     "233828": {"d": "DROSED S.A.", "z": "Sedar", "s": "600299"},
     "202199": {"d": "DROSED S.A.", "z": "Sedar", "s": "600299"},
     "260720": {"d": "DROSED S.A.", "z": "Sedar", "s": "600299"},
@@ -193,33 +213,121 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
     "536162": {"d": "DROSED S.A.", "z": "Roldrob", "s": "600299"},
     "477445": {"d": "DROSED S.A.", "z": "Roldrob", "s": "600299"},
     "477476": {"d": "DROSED S.A.", "z": "Roldrob", "s": "600299"},
+
+    // ZAKRZEWSCY
+    "259798": {"d": "ZAKRZEWSCY", "z": "Szczuczyn", "s": "643968"},
+    "259799": {"d": "ZAKRZEWSCY", "z": "Szczuczyn", "s": "643968"},
+    "259800": {"d": "ZAKRZEWSCY", "z": "Szczuczyn", "s": "643968"},
+    "259801": {"d": "ZAKRZEWSCY", "z": "Szczuczyn", "s": "643968"},
+    "259796": {"d": "ZAKRZEWSCY", "z": "Szczuczyn", "s": "643968"},
+    "268120": {"d": "ZAKRZEWSCY", "z": "Stanisławów", "s": "643968"},
+    "370128": {"d": "ZAKRZEWSCY", "z": "Stanisławów", "s": "643968"},
+    "385365": {"d": "ZAKRZEWSCY", "z": "Stanisławów", "s": "643968"},
+    "464158": {"d": "ZAKRZEWSCY", "z": "Stanisławów", "s": "643968"},
+    "600128": {"d": "ZAKRZEWSCY", "z": "Stanisławów", "s": "643968"},
   };
 
-  // ==========================================
-  // 2. BAZA STEMPLI WETERYNARYJNYCH WNI
-  // ==========================================
+  // =========================================================================
+  // 2. PEŁNA BAZA STEMPLI WETERYNARYJNYCH WNI (DRÓB, WIEPRZOWINA, WOŁOWINA, RYBY)
+  // =========================================================================
   final Map<String, Map<String, String>> bazaWni = {
+    // --- RYBY ---
+    "32081801": {"d": "KORAL", "z": "Kukinia", "s": "600632"},
+    "22121801": {"d": "MILAREX", "z": "Słupsk", "s": "648574"},
+    "32131801": {"d": "PIRS", "z": "Darłowo", "s": "636757"},
+    "20041801": {"d": "REKIN", "z": "Grajewo", "s": "639641"},
+    "20031801": {"d": "SUEMPOL", "z": "Bielsk Podlaski", "s": "600588"},
+    "22121802": {"d": "MOWI / MORPOL", "z": "Duninowo", "s": "610900"},
+    "12011801": {"d": "CONTIMAX", "z": "Bochnia", "s": "622100"},
+    "22071801": {"d": "SEKO", "z": "Chojnice", "s": "608400"},
+    "32091801": {"d": "NORD CAPITAL", "z": "Rekowo Górne", "s": "633200"},
+
+    // --- ANIMEX ---
     "28050201": {"d": "ANIMEX FOODS", "z": "Ełk", "s": "659323"},
     "10020202": {"d": "ANIMEX FOODS", "z": "Kutno K2", "s": "659323"},
     "10023801": {"d": "ANIMEX FOODS", "z": "Kutno K4", "s": "659323"},
-    "04140316": {"d": "SOKOŁÓW S.A.", "z": "Osie", "s": "601497"},
+    "10020201": {"d": "ANIMEX FOODS", "z": "Kutno K3", "s": "659323"},
+    "32620201": {"d": "ANIMEX FOODS", "z": "Szczecin K1", "s": "659323"},
+    "26110201": {"d": "ANIMEX FOODS", "z": "Starachowice", "s": "659323"},
+    "28070201": {"d": "ANIMEX FOODS", "z": "Iława", "s": "659323"},
+    "20630201": {"d": "ANIMEX FOODS", "z": "Suwałki", "s": "659323"},
+    "16610201": {"d": "ANIMEX FOODS", "z": "Opole", "s": "659323"},
+
+    // --- SOKOŁÓW ---
+    "30090201": {"d": "SOKOŁÓW S.A.", "z": "Koło", "s": "601497"},
     "12630215": {"d": "SOKOŁÓW S.A.", "z": "Tarnów", "s": "601497"},
     "14290201": {"d": "SOKOŁÓW S.A.", "z": "Sokołów Podlaski", "s": "601497"},
-    "30090201": {"d": "SOKOŁÓW S.A.", "z": "Koło", "s": "601497"},
-    "14130205": {"d": "CEDROB S.A.", "z": "Ujazdówek", "s": "612800"},
-    "14040201": {"d": "CEDROB S.A.", "z": "Ciechanów", "s": "612800"},
-    "14020201": {"d": "CEDROB S.A.", "z": "Niebieskie", "s": "612800"},
-    "30020202": {"d": "DROSED S.A.", "z": "Ostrzeszów", "s": "600320"},
-    "14260203": {"d": "DROSED S.A.", "z": "Siedlce", "s": "600320"},
-    "04630201": {"d": "PLUKON", "z": "Grzmiąca", "s": "655900"},
-    "14070201": {"d": "INDYKPOL", "z": "Olsztynek", "s": "604500"},
-    "28620201": {"d": "INDYKPOL", "z": "Olsztyn", "s": "604500"},
-    "30180201": {"d": "WIPASZ S.A.", "z": "Mława", "s": "664100"},
-    "14180202": {"d": "WIPASZ S.A.", "z": "Koło", "s": "664100"},
+    "04140316": {"d": "SOKOŁÓW S.A.", "z": "Osie", "s": "601497"},
+    "30210201": {"d": "SOKOŁÓW S.A.", "z": "Robakowo", "s": "601497"},
+    "18040201": {"d": "SOKOŁÓW S.A.", "z": "Jarosław", "s": "601497"},
+    "20130201": {"d": "SOKOŁÓW S.A.", "z": "Czyżew", "s": "601497"},
+    "18030201": {"d": "SOKOŁÓW S.A.", "z": "Dębica", "s": "601497"},
+
+    // --- CEDROB ---
+    "14130205": {"d": "CEDROB S.A.", "z": "Ujazdówek", "s": "600195"},
+    "14040201": {"d": "CEDROB S.A.", "z": "Ciechanów", "s": "600195"},
+    "14020201": {"d": "CEDROB S.A.", "z": "Niebieskie", "s": "600195"},
+    "10180201": {"d": "CEDROB S.A.", "z": "Mokrsko", "s": "600195"},
+    "10020203": {"d": "CEDROB S.A.", "z": "Kutno", "s": "600195"},
+
+    // --- DROSED / ROLDROB / SEDAR / DROP ---
+    "14260203": {"d": "DROSED S.A.", "z": "Siedlce", "s": "600299"},
+    "06010201": {"d": "DROSED S.A.", "z": "Sedar", "s": "600299"},
+    "30020202": {"d": "DROSED S.A.", "z": "Drop", "s": "600299"},
+    "10160201": {"d": "DROSED S.A.", "z": "Roldrob", "s": "600299"},
+
+    // --- PLUKON ---
+    "04630201": {"d": "PLUKON", "z": "Grzmiąca", "s": "647600"},
+    "10010201": {"d": "PLUKON", "z": "Wyrębski", "s": "647600"},
+
+    // --- ZAKRZEWSCY ---
+    "20040201": {"d": "ZAKRZEWSCY", "z": "Szczuczyn", "s": "643968"},
+    "14120201": {"d": "ZAKRZEWSCY", "z": "Stanisławów", "s": "643968"},
+    "14290202": {"d": "ZAKRZEWSCY", "z": "Kosów Lacki", "s": "643968"},
+
+    // --- POZOSTALI ---
+    "14180202": {"d": "WIPASZ S.A.", "z": "Koło", "s": "642915"},
+    "14130201": {"d": "WIPASZ S.A.", "z": "Mława", "s": "642915"},
+    "28620201": {"d": "INDYKPOL", "z": "Olsztyn", "s": "614301"},
+    "14070201": {"d": "INDYKPOL", "z": "Olsztynek", "s": "614301"},
+    "22030201": {"d": "GOODVALLEY", "z": "Przechlewo", "s": "616640"},
+    "06110201": {"d": "ŁUKÓW", "z": "Łuków", "s": "635426"},
     "14270201": {"d": "AGRO-RYDZYNA", "z": "Kłoda", "s": "621900"},
-    "30040201": {"d": "SUPERDROB", "z": "Karczew", "s": "618400"},
+    "30040201": {"d": "SUPERDROB", "z": "Karczew", "s": "648711"},
     "06630201": {"d": "SUPERDROB", "z": "Lublin", "s": "648711"},
+    "30060201": {"d": "BIERNA", "z": "Jarocin", "s": "636848"},
+    "22040201": {"d": "NOWAK", "z": "Jankowo", "s": "645317"},
+    "30210202": {"d": "WIELKOPOLSKI INDYK", "z": "Mosina", "s": "644590"},
+    "10180202": {"d": "DOBRYDZIAŁ", "z": "Dobrydział", "s": "650415"},
     "14170201": {"d": "PINI POLONIA", "z": "Kutno", "s": "639200"},
+  };
+
+  // =========================================================================
+  // 3. BAZA NAZW DOSTAWCÓW I KODÓW SAP GŁÓWNYCH
+  // =========================================================================
+  final Map<String, Map<String, String>> bazaDostawcowNazwy = {
+    "KORAL": {"d": "KORAL", "z": "Kukinia", "s": "600632"},
+    "MILAREX": {"d": "MILAREX", "z": "Słupsk", "s": "648574"},
+    "PIRS": {"d": "PIRS", "z": "Darłowo", "s": "636757"},
+    "REKIN": {"d": "REKIN", "z": "Grajewo", "s": "639641"},
+    "SUEMPOL": {"d": "SUEMPOL", "z": "Bielsk Podlaski", "s": "600588"},
+    "MOWI": {"d": "MOWI / MORPOL", "z": "Duninowo", "s": "610900"},
+    "MORPOL": {"d": "MOWI / MORPOL", "z": "Duninowo", "s": "610900"},
+    "CONTIMAX": {"d": "CONTIMAX", "z": "Bochnia", "s": "622100"},
+    "SEKO": {"d": "SEKO", "z": "Chojnice", "s": "608400"},
+    "ANIMEX": {"d": "ANIMEX FOODS", "z": "Kutno", "s": "659323"},
+    "SOKOŁÓW": {"d": "SOKOŁÓW S.A.", "z": "Sokołów Podlaski", "s": "601497"},
+    "SOKOLOW": {"d": "SOKOŁÓW S.A.", "z": "Sokołów Podlaski", "s": "601497"},
+    "CEDROB": {"d": "CEDROB S.A.", "z": "Ujazdówek", "s": "600195"},
+    "DROSED": {"d": "DROSED S.A.", "z": "Siedlce", "s": "600299"},
+    "PLUKON": {"d": "PLUKON", "z": "Grzmiąca", "s": "647600"},
+    "WIPASZ": {"d": "WIPASZ S.A.", "z": "Mława", "s": "642915"},
+    "INDYKPOL": {"d": "INDYKPOL", "z": "Olsztyn", "s": "614301"},
+    "GOODVALLEY": {"d": "GOODVALLEY", "z": "Przechlewo", "s": "616640"},
+    "ŁUKÓW": {"d": "ŁUKÓW", "z": "Łuków", "s": "635426"},
+    "LUKOW": {"d": "ŁUKÓW", "z": "Łuków", "s": "635426"},
+    "AGRO-RYDZYNA": {"d": "AGRO-RYDZYNA", "z": "Kłoda", "s": "621900"},
+    "SUPERDROB": {"d": "SUPERDROB", "z": "Lublin", "s": "648711"},
   };
 
   @override
@@ -272,7 +380,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
 
     final inputImage = InputImage.fromFilePath(pickedFile.path);
 
-    // 1. ODCZYT KODÓW KRESKOWYCH (EAN / GS1-128)
+    // 1. ODCZYT KODÓW KRESKOWYCH (EAN / GS1-128 / DATABAR)
     try {
       final barcodes = await _barcodeScanner.processImage(inputImage);
       for (var b in barcodes) {
@@ -292,7 +400,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
       _analizujTekstOcr(_rawOcrText);
     } catch (_) {}
 
-    // 3. ZAPIS DO TRWAŁEJ HISTORII
+    // 3. ZAPIS DO HISTORII W PAMIĘCI TELEFONU
     final wpis = {
       "czas": DateTime.now().toIso8601String(),
       "indeks": indeksProduktu,
@@ -337,7 +445,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
   void _analizujTekstOcr(String text) {
     String clean = text.toUpperCase();
 
-    // 1. WYSZUKIWANIE INDEKSU PRODUKTU Z BAZY
+    // 1. SZUKANIE INDEKSU PRODUKTU W BAZIE
     for (String ind in bazaIndeksow.keys) {
       if (clean.contains(ind)) {
         indeksProduktu = ind;
@@ -348,28 +456,46 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
       }
     }
 
-    // 2. JEŚLI NIE ZNALAZŁ PO INDEKSIE -> SZUKAJ PO WNI
-    if (dostawca == null) {
-      for (String code in bazaWni.keys) {
-        if (clean.replaceAll(RegExp(r'\s+'), '').contains(code)) {
-          wni = code;
+    // 2. SZUKANIE STEMPLA WETERYNARYJNEGO WNI (8 CYFR)
+    String cleanNoSpaces = clean.replaceAll(RegExp(r'\s+'), '');
+    for (String code in bazaWni.keys) {
+      if (cleanNoSpaces.contains(code)) {
+        wni = code;
+        if (dostawca == null) {
           dostawca = bazaWni[code]!['d'];
           zaklad = bazaWni[code]!['z'];
           sapDostawca = bazaWni[code]!['s'];
+        }
+        break;
+      }
+    }
+
+    // 3. STEMPEL FORMATU: PL XX XX XX XX
+    if (wni == null) {
+      final matchWni = RegExp(r'PL\s*(\d{2}\s*\d{2}\s*\d{2}\s*\d{2})').firstMatch(clean);
+      if (matchWni != null) {
+        wni = matchWni.group(1)!.replaceAll(RegExp(r'\s+'), '');
+        if (bazaWni.containsKey(wni) && dostawca == null) {
+          dostawca = bazaWni[wni]!['d'];
+          zaklad = bazaWni[wni]!['z'];
+          sapDostawca = bazaWni[wni]!['s'];
+        }
+      }
+    }
+
+    // 4. JEŚLI DALEJ BRAK DOSTAWCY -> SZUKAJ PO NAZWIE FIRMY
+    if (dostawca == null) {
+      for (String nazwa in bazaDostawcowNazwy.keys) {
+        if (clean.contains(nazwa)) {
+          dostawca = bazaDostawcowNazwy[nazwa]!['d'];
+          zaklad = bazaDostawcowNazwy[nazwa]!['z'];
+          sapDostawca = bazaDostawcowNazwy[nazwa]!['s'];
           break;
         }
       }
     }
 
-    // 3. STEMPEL WETERYNARYJNY (PL XX XX XX XX)
-    if (wni == null) {
-      final matchWni = RegExp(r'PL\s*(\d{2}\s*\d{2}\s*\d{2}\s*\d{2})').firstMatch(clean);
-      if (matchWni != null) {
-        wni = matchWni.group(1)!.replaceAll(RegExp(r'\s+'), '');
-      }
-    }
-
-    // 4. DATA WAŻNOŚCI
+    // 5. DATA WAŻNOŚCI
     if (dataWaznosci == null) {
       final regData = RegExp(r'(\d{2}[\.\-\/]\d{2}[\.\-\/]\d{2,4})');
       final matchData = regData.firstMatch(clean);
@@ -378,7 +504,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
       }
     }
 
-    // 5. NUMER PARTII
+    // 6. NUMER PARTII
     if (numerPartii == null) {
       final regPartia = RegExp(r'(?:PARTIA|LOT|SERIA|NR\s*PARTII|PARTII|L\s*[:\.]?|P\s*[:\.]?)\s*([A-Z0-9\-\/]{3,18})');
       final matchP = regPartia.firstMatch(clean);
@@ -396,7 +522,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
       }
     }
 
-    // 6. MASA NETTO
+    // 7. MASA NETTO
     if (masaNetto == null) {
       final regMasa = RegExp(r'(\d+[,\.]\d{1,3})\s*(?:KG|G)\b');
       final matchM = regMasa.firstMatch(clean);
@@ -405,8 +531,8 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
       }
     }
 
-    // 7. KRAJ POCHODZENIA
-    if (clean.contains("POLSKA") || clean.contains("PL ") || clean.contains("POCHODZENIE: PL") || clean.contains("UBITO")) {
+    // 8. KRAJ POCHODZENIA
+    if (clean.contains("POLSKA") || clean.contains("KRAJ POCHODZENIA: PL") || clean.contains("POCHODZENIE: PL") || clean.contains("UBITO W: PL") || clean.contains("PL ")) {
       krajPochodzenia = "POLSKA (PL)";
     }
   }
@@ -472,7 +598,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Trwała historia (${_historia.length})", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text("Historia skanów (${_historia.length})", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       if (_historia.isNotEmpty)
                         IconButton(
                           icon: const Icon(Icons.delete_forever, color: Colors.red, size: 28),
@@ -507,6 +633,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
                                       Text("Indeks: ${h['indeks'] ?? '-'} | SAP: ${h['sap'] ?? '-'}"),
                                       Text("Partia: ${h['partia'] ?? '-'} | Data: ${h['data'] ?? '-'}"),
                                       Text("Waga: ${h['masa'] ?? '-'} | EAN: ${h['ean'] ?? '-'}"),
+                                      Text("WNI: ${h['wni'] ?? '-'}"),
                                     ],
                                   ),
                                 ),
