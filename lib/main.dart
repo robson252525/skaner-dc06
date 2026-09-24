@@ -11,6 +11,32 @@ void main() {
   ));
 }
 
+class WynikSkanu {
+  final DateTime czas;
+  final String? dostawca;
+  final String? zaklad;
+  final String? sapDostawca;
+  final String? wni;
+  final String? eanKod;
+  final String? dataWaznosci;
+  final String? numerPartii;
+  final String? krajPochodzenia;
+  final String? masaNetto;
+
+  WynikSkanu({
+    required this.czas,
+    this.dostawca,
+    this.zaklad,
+    this.sapDostawca,
+    this.wni,
+    this.eanKod,
+    this.dataWaznosci,
+    this.numerPartii,
+    this.krajPochodzenia,
+    this.masaNetto,
+  });
+}
+
 class SkanerEtykiet extends StatefulWidget {
   const SkanerEtykiet({super.key});
 
@@ -31,6 +57,8 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
   String? numerPartii;
   String? krajPochodzenia;
   String? masaNetto;
+
+  final List<WynikSkanu> _historia = [];
 
   final ImagePicker _picker = ImagePicker();
   final TextRecognizer _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
@@ -85,6 +113,20 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
 
     final recognizedText = await _textRecognizer.processImage(inputImage);
     _analyzeText(recognizedText.text);
+
+    // Zapis do historii
+    _historia.insert(0, WynikSkanu(
+      czas: DateTime.now(),
+      dostawca: dostawca,
+      zaklad: zaklad,
+      sapDostawca: sapDostawca,
+      wni: wni,
+      eanKod: eanKod,
+      dataWaznosci: dataWaznosci,
+      numerPartii: numerPartii,
+      krajPochodzenia: krajPochodzenia,
+      masaNetto: masaNetto,
+    ));
 
     setState(() {
       _isProcessing = false;
@@ -175,12 +217,104 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
     );
   }
 
+  void _pokazHistorie() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Historia skanów",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      if (_historia.isNotEmpty)
+                        IconButton(
+                          icon: const Icon(Icons.delete_sweep, color: Colors.red),
+                          tooltip: "Wyczyść historię",
+                          onPressed: () {
+                            setState(() => _historia.clear());
+                            setModalState(() {});
+                          },
+                        ),
+                    ],
+                  ),
+                  const Divider(),
+                  _historia.isEmpty
+                      ? const Expanded(
+                          child: Center(
+                            child: Text("Brak zapisanych skanów w tej sesji"),
+                          ),
+                        )
+                      : Expanded(
+                          child: ListView.builder(
+                            itemCount: _historia.length,
+                            itemBuilder: (context, index) {
+                              final h = _historia[index];
+                              final czasStr = "${h.czas.hour.toString().padLeft(2, '0')}:${h.czas.minute.toString().padLeft(2, '0')}:${h.czas.second.toString().padLeft(2, '0')}";
+                              return Card(
+                                margin: const EdgeInsets.symmetric(vertical: 6),
+                                elevation: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            h.dostawca != null ? "${h.dostawca} (${h.zaklad})" : "NIEZNANY DOSTAWCA",
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                          ),
+                                          Text(czasStr, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text("WNI: ${h.wni ?? '-'} | SAP: ${h.sapDostawca ?? '-'}"),
+                                      Text("Partia: ${h.numerPartii ?? '-'} | Ważność: ${h.dataWaznosci ?? '-'}"),
+                                      Text("EAN: ${h.eanKod ?? '-'} | Waga: ${h.masaNetto ?? '-'}"),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Kontrola Etykiety DC06"),
         backgroundColor: Colors.orange.shade800,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: "Historia skanów",
+            onPressed: _pokazHistorie,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(12),
