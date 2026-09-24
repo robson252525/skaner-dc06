@@ -25,15 +25,23 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Pobierz pakiety Fluttera
-        run: flutter pub get
+      - name: Napraw brakujące environment w pubspec.yaml
+        run: |
+          if ! grep -q "environment:" pubspec.yaml; then
+            echo -e "\nenvironment:\n  sdk: '>=3.0.0 <4.0.0'" >> pubspec.yaml
+          fi
 
-      - name: Przygotuj projekt Androida i wyłącz R8
+      - name: Wygeneruj projekt Androida (jeśli brak)
         run: |
           if [ ! -d "android" ]; then
             flutter create . --platforms=android
           fi
-          # Wyłączenie minifikacji R8 bezpośrednio w pliku build.gradle
+
+      - name: Pobierz pakiety Fluttera
+        run: flutter pub get
+
+      - name: Wyłącz minifikację R8 w Androidzie
+        run: |
           find android -name "build.gradle*" -exec sed -i 's/isMinifyEnabled = true/isMinifyEnabled = false/g' {} +
           find android -name "build.gradle*" -exec sed -i 's/isShrinkResources = true/isShrinkResources = false/g' {} +
           find android -name "build.gradle*" -exec sed -i 's/minifyEnabled true/minifyEnabled false/g' {} +
