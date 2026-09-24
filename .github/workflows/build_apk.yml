@@ -25,12 +25,6 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Napraw brakujące environment w pubspec.yaml
-        run: |
-          if ! grep -q "environment:" pubspec.yaml; then
-            echo -e "\nenvironment:\n  sdk: '>=3.0.0 <4.0.0'" >> pubspec.yaml
-          fi
-
       - name: Wygeneruj projekt Androida (jeśli brak)
         run: |
           if [ ! -d "android" ]; then
