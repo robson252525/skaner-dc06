@@ -55,7 +55,7 @@ class _SkanerEtykietState extends State<SkanerEtykiet> {
     "30180201": {"d": "WIPASZ S.A.", "z": "Mława", "s": "664100"},
     "14180202": {"d": "WIPASZ S.A.", "z": "Koło", "s": "664100"},
     "14270201": {"d": "AGRO-RYDZYNA", "z": "Kłoda", "s": "621900"},
-    "30040201": {"d": "SUPERDRIB", "z": "Karczew", "s": "618400"},
+    "30040201": {"d": "SUPERDROB", "z": "Karczew", "s": "618400"},
     "14170201": {"d": "PINI POLONIA", "z": "Kutno", "s": "639200"},
   };
 
